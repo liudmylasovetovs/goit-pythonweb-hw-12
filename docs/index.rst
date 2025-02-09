@@ -5,14 +5,12 @@
 
 Final Progect documentation
 ===========================
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
 Final Progect main
 ===========================
-
 .. automodule:: main
   :members:
   :undoc-members:
@@ -20,7 +18,6 @@ Final Progect main
 
 Final Progect API Auth
 ===========================
-
 .. automodule:: src.api.auth
   :members:
   :undoc-members:
@@ -28,7 +25,6 @@ Final Progect API Auth
 
 Final Progect API Contacts
 ===========================
-
 .. automodule:: src.api.contacts
   :members:
   :undoc-members:
@@ -36,25 +32,20 @@ Final Progect API Contacts
 
 Final Progect API Utils
 ===========================
-
 .. automodule:: src.api.utils
   :members:
   :undoc-members:
   :show-inheritance:
 
-
 Final Progect Database Models
 =============================
-
 .. automodule:: src.database.models
   :members:
   :undoc-members:
   :show-inheritance:
 
-
 Final Progect repository Contacts
 =================================
-
 .. automodule:: src.repository.contacts
   :members:
   :undoc-members:
@@ -62,7 +53,6 @@ Final Progect repository Contacts
 
 Final Progect repository Users
 ==============================
-
 .. automodule:: src.repository.users
   :members:
   :undoc-members:
@@ -77,7 +67,6 @@ Final Progect Services Auth
 
 Final Progect Services Contacts
 ===============================
-
 .. automodule:: src.services.contacts
   :members:
   :undoc-members:
@@ -85,7 +74,6 @@ Final Progect Services Contacts
 
 Final Progect Services Users
 ============================
-
 .. automodule:: src.services.users
   :members:
   :undoc-members:
