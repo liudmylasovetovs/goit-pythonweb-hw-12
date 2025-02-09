@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from starlette.responses import JSONResponse
 
-from src.api import auth, contacts, users, utils
+from src.api import auth, contacts, users, utils, reset_password
 from src.conf import messages
 
 # Initialize FastAPI application
@@ -22,6 +22,7 @@ app.include_router(utils.router, prefix="/api")
 app.include_router(contacts.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
+app.include_router(reset_password.router, prefix="/api")
 
 # Configure CORS (Cross-Origin Resource Sharing)
 origins = ["http://localhost:8000"]
