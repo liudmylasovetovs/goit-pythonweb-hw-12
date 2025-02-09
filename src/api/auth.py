@@ -1,3 +1,10 @@
+"""
+This module defines authentication routes for user registration, login, and email verification.
+
+It includes endpoints for user registration, login, email verification requests,
+and handling email confirmation.
+"""
+
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -19,7 +26,6 @@ from src.conf import messages
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreate,
@@ -27,6 +33,18 @@ async def register_user(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    """
+    Registers a new user and sends a confirmation email.
+    
+    Args:
+        user_data (UserCreate): The user registration data.
+        background_tasks (BackgroundTasks): Background task handler for sending emails.
+        request (Request): The request object to get base URL.
+        db (Session): The database session dependency.
+    
+    Returns:
+        User: The newly created user object.
+    """
     user_service = UserService(db)
 
     email_user = await user_service.get_user_by_email(user_data.email)
@@ -49,9 +67,18 @@ async def register_user(
     )
     return new_user
 
-
 @router.post("/login", response_model=Token)
 async def login_user(body: UserLogin, db: Session = Depends(get_db)):
+    """
+    Authenticates a user and returns an access token.
+    
+    Args:
+        body (UserLogin): The user login credentials.
+        db (Session): The database session dependency.
+    
+    Returns:
+        Token: An access token for the authenticated user.
+    """
     user_service = UserService(db)
     user = await user_service.get_user_by_email(body.email)
     if user and not user.confirmed:
@@ -69,7 +96,6 @@ async def login_user(body: UserLogin, db: Session = Depends(get_db)):
     access_token = await create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 @router.post("/request_email")
 async def request_email(
     body: RequestEmail,
@@ -77,6 +103,18 @@ async def request_email(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    """
+    Requests email verification for an existing user.
+    
+    Args:
+        body (RequestEmail): The email request payload.
+        background_tasks (BackgroundTasks): Background task handler for sending emails.
+        request (Request): The request object to get base URL.
+        db (Session): The database session dependency.
+    
+    Returns:
+        dict: A message indicating the status of email verification.
+    """
     user_service = UserService(db)
     user = await user_service.get_user_by_email(body.email)
 
@@ -86,11 +124,20 @@ async def request_email(
         background_tasks.add_task(
             send_email, user.email, user.username, request.base_url
         )
-    return {"message": "Перевірте свою електронну пошту для підтвердження"}
-
+    return {"message": "Check your email for confirmation"}
 
 @router.get("/confirmed_email/{token}")
 async def confirmed_email(token: str, db: Session = Depends(get_db)):
+    """
+    Confirms the user's email using a token.
+    
+    Args:
+        token (str): The email confirmation token.
+        db (Session): The database session dependency.
+    
+    Returns:
+        dict: A message indicating whether the email confirmation was successful.
+    """
     email = await get_email_from_token(token)
     user_service = UserService(db)
     user = await user_service.get_user_by_email(email)
@@ -101,4 +148,4 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
     if user.confirmed:
         return {"message": messages.API_EMAIL_CONFIRMED}
     await user_service.confirmed_email(email)
-    return {"message": "Електронну пошту підтверджено"}
+    return {"message": "Email successfully confirmed"}
