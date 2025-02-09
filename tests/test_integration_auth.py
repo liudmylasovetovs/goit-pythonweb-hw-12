@@ -33,7 +33,7 @@ def test_repeat_signup(client, monkeypatch):
     response = client.post("api/auth/register", json=user_data)
     assert response.status_code == 409, response.text
     data = response.json()
-    assert data["detail"] == "Користувач з таким email вже існує"
+    assert data["detail"] == messages.API_ERROR_USER_ALREADY_EXIST
 
 
 def test_not_confirmed_login(client):
@@ -43,7 +43,7 @@ def test_not_confirmed_login(client):
     )
     assert response.status_code == 401, response.text
     data = response.json()
-    assert data["detail"] == "Електронна адреса не підтверджена"
+    assert data["detail"] == messages.API_ERROR_USER_NOT_AUTHORIZED
 
 
 @pytest.mark.asyncio
@@ -67,14 +67,14 @@ def test_wrong_password_login(client):
                            json={"email": user_data.get("email"), "password": "wrong-password"})
     assert response.status_code == 401, response.text
     data = response.json()
-    assert data["detail"] == messages.API_ERROR_WRONG_PASSWORD
+    assert data["detail"] == messages.API_ERROR_WRONG_LOGIN_PASSWORD
 
 def test_wrong_username_login(client):
     response = client.post("api/auth/login",
                            json={"email": "email", "password": user_data.get("password")})
     assert response.status_code == 401, response.text
     data = response.json()
-    assert data["detail"] == messages.API_ERROR_WRONG_PASSWORD
+    assert data["detail"] == messages.API_ERROR_WRONG_LOGIN_PASSWORD
 
 def test_validation_error_login(client):
     response = client.post("api/auth/login",

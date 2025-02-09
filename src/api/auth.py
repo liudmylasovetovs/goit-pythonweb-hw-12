@@ -15,11 +15,11 @@ from src.schemas.users import RequestEmail, Token, User, UserCreate, UserLogin
 from src.services.auth import Hash, create_access_token, get_email_from_token
 from src.services.email import send_email
 from src.services.users import UserService
+from src.conf import messages
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-# Реєстрація користувача
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreate,
@@ -33,14 +33,14 @@ async def register_user(
     if email_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Користувач з таким email вже існує",
+            detail=messages.API_ERROR_USER_ALREADY_EXIST,
         )
 
     username_user = await user_service.get_user_by_username(user_data.username)
     if username_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Користувач з таким іменем вже існує",
+            detail=messages.API_ERROR_USER_ALREADY_EXIST,
         )
     user_data.password = Hash().get_password_hash(user_data.password)
     new_user = await user_service.create_user(user_data)
@@ -50,15 +50,19 @@ async def register_user(
     return new_user
 
 
-# Логін користувача
 @router.post("/login", response_model=Token)
 async def login_user(body: UserLogin, db: Session = Depends(get_db)):
     user_service = UserService(db)
     user = await user_service.get_user_by_email(body.email)
+    if user and not user.confirmed:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=messages.API_ERROR_USER_NOT_AUTHORIZED,
+        )
     if not user or not Hash().verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неправильний логін або пароль",
+            detail=messages.API_ERROR_WRONG_LOGIN_PASSWORD,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -77,7 +81,7 @@ async def request_email(
     user = await user_service.get_user_by_email(body.email)
 
     if user.confirmed:
-        return {"message": "Ваша електронна пошта вже підтверджена"}
+        return {"message": messages.API_EMAIL_CONFIRMED}
     if user:
         background_tasks.add_task(
             send_email, user.email, user.username, request.base_url
@@ -95,6 +99,6 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error"
         )
     if user.confirmed:
-        return {"message": "Ваша електронна пошта вже підтверджена"}
+        return {"message": messages.API_EMAIL_CONFIRMED}
     await user_service.confirmed_email(email)
     return {"message": "Електронну пошту підтверджено"}

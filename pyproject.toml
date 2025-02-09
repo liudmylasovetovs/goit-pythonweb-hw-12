@@ -18,7 +18,15 @@ passlib = ">=1.7.4,<2.0.0"
 slowapi = "^0.1.9"
 python-multipart = "^0.0.20"
 cloudinary = "^1.42.2"
+pydantic-settings = "^2.7.1"
+pytest-asyncio = "^0.25.3"
+pytest = "^8.3.4"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = "."
+filterwarnings = "ignore::DeprecationWarning"
+asyncio_default_fixture_loop_scope = "function"

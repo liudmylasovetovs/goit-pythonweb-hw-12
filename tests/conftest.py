@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from main import app
-from src.database.models import Base, User
+from src.database.models import Base, User, Contact
 from src.database.db import get_db
 from src.services.auth import create_access_token, Hash
 
