@@ -18,7 +18,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
-from src.schemas.users import RequestEmail, Token, User, UserCreate, UserLogin
+from src.schemas.users import RequestEmail, Token, User, UserCreate, UserLogin, ResetPasswordRequest
 from src.services.auth import Hash, create_access_token, get_email_from_token
 from src.services.email import send_email
 from src.services.users import UserService
@@ -151,3 +151,50 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
     return {"message": "Email successfully confirmed"}
 
 
+@router.post("/reset_password")
+async def reset_password(body: RequestEmail, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
+    """
+    Requests a password reset for an existing user.
+    
+    Args:
+        body (RequestEmail): The email request payload.
+        db (Session): The database session dependency.
+    
+    Returns:
+        dict: A message indicating the status of the password reset request.
+    """
+    user_service = UserService(db)
+    user = await user_service.get_user_by_email(body.email)
+
+    if user:
+        background_tasks.add_task(
+            send_email, user.email, user.username, request.base_url
+        )
+    return {"message": "If your email exists in our system, you will receive a password reset link shortly."}
+
+
+@router.patch("/update_password/{token}")
+async def update_password(token: str, body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Updates the user's password using a token.
+    
+    Args:
+        token (str): The password reset token.
+        body (UserCreate): The new password payload.
+        db (Session): The database session dependency.
+    
+    Returns:
+        dict: A message indicating whether the password reset was successful.
+    """
+    email = await get_email_from_token(token)
+    user_service = UserService(db)
+    user = await user_service.get_user_by_email(email)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token."
+        )
+
+    hashed_password = Hash().get_password_hash(body.password)
+    await user_service.update_user(user.id, {"hashed_password": hashed_password})
+    return {"message": "Password has been successfully reset."}

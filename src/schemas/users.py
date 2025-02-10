@@ -32,9 +32,6 @@ class Token(BaseModel):
 class RequestEmail(BaseModel):
     email: EmailStr
 
-# class ResetPasswordRequest(BaseModel):
-#     email: EmailStr
 
-# class SetNewPassword(BaseModel):
-#     token: str
-#     new_password: str
+class ResetPasswordRequest(BaseModel):
+    password: str
