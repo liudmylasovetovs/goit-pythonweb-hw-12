@@ -14,7 +14,7 @@ from src.services.auth import get_current_admin_user
 from src.database.models import User
 
 
-from src.api import auth, contacts, users, utils, reset_password
+from src.api import auth, contacts, users, utils
 from src.conf import messages
 
 # Initialize FastAPI application
