@@ -6,10 +6,13 @@ and an exception handler for rate limiting.
 """
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from starlette.responses import JSONResponse
+from src.services.auth import get_current_admin_user
+from src.database.models import User
+
 
 from src.api import auth, contacts, users, utils, reset_password
 from src.conf import messages
@@ -22,7 +25,7 @@ app.include_router(utils.router, prefix="/api")
 app.include_router(contacts.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
-app.include_router(reset_password.router, prefix="/api")
+# app.include_router(reset_password.router, prefix="/api")
 
 # Configure CORS (Cross-Origin Resource Sharing)
 origins = ["http://localhost:8000"]
@@ -63,8 +66,15 @@ async def root():
     """
     return {"message": messages.WELCOME_MESSAGE}
 
+@app.get("/admin")
+def read_admin(current_user: User = Depends(get_current_admin_user)):
+    return {"message": f"Вітаємо, {current_user.username}! Це адміністративний маршрут"}
+
+
 if __name__ == "__main__":
     """
     Runs the FastAPI application using Uvicorn.
     """
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True, workers=1)
+
+

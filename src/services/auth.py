@@ -7,6 +7,8 @@ and email verification token management.
 
 from datetime import datetime, timedelta, UTC
 from typing import Optional
+import redis
+from redis_lru import RedisLRU
 
 from fastapi import Depends, HTTPException, status
 from passlib.context import CryptContext
@@ -20,6 +22,11 @@ from jose import JWTError, jwt
 from src.database.db import get_db
 from src.conf.config import settings
 from src.services.users import UserService
+from src.database.models import User, UserRole
+
+
+client = redis.StrictRedis(host="localhost", port=6379, password=None)
+cache = RedisLRU(client, default_ttl=15 * 60)
 
 class Hash:
     """
@@ -107,11 +114,32 @@ async def get_current_user(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
+    # user_service = UserService(db)
+    # user = await user_service.get_user_by_username(username)
+    # if user is None:
+    #     raise credentials_exception
+    # return user
+
+    cache_key = f"user:{username}"
+    cached_user = cache.get(cache_key)
+    if cached_user:
+        return cached_user
+
     user_service = UserService(db)
     user = await user_service.get_user_by_username(username)
+
     if user is None:
         raise credentials_exception
+    cache.set(cache_key, user)
+
     return user
+
+
+def get_current_admin_user(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="The user does not have enough privileges")
+    return current_user
+
 
 def create_email_token(data: dict) -> str:
     """

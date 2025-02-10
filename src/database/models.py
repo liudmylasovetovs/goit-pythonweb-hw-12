@@ -5,7 +5,9 @@ It includes the base model with timestamps and specific models for users and con
 """
 
 from datetime import date, datetime
+from enum import Enum
 
+from sqlalchemy import Column, Integer, String, Enum as SqlEnum
 from sqlalchemy import Boolean, Column, Integer, String, Table, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql.schema import ForeignKey, PrimaryKeyConstraint
@@ -19,6 +21,14 @@ class Base(DeclarativeBase):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now()
     )
+
+
+class UserRole(Enum):
+    """
+    Enum representing the roles of a user.
+    """
+    USER = "user"
+    ADMIN = "admin"
 
 class Contact(Base):
     """
@@ -69,3 +79,4 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())
     avatar = Column(String(255), nullable=True)
     confirmed = Column(Boolean, default=False)
+    role = Column(SqlEnum(UserRole), default=UserRole.USER, nullable=False)

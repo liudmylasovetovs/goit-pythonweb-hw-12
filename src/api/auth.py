@@ -149,3 +149,5 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
         return {"message": messages.API_EMAIL_CONFIRMED}
     await user_service.confirmed_email(email)
     return {"message": "Email successfully confirmed"}
+
+

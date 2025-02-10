@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict, EmailStr, field_validator
+from src.database.models import UserRole
 
 # Схема користувача
 class User(BaseModel):
@@ -8,6 +9,7 @@ class User(BaseModel):
     username: str
     email: str
     avatar: str
+    role: UserRole
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -30,9 +32,9 @@ class Token(BaseModel):
 class RequestEmail(BaseModel):
     email: EmailStr
 
-class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+# class ResetPasswordRequest(BaseModel):
+#     email: EmailStr
 
-class SetNewPassword(BaseModel):
-    token: str
-    new_password: str
+# class SetNewPassword(BaseModel):
+#     token: str
+#     new_password: str
